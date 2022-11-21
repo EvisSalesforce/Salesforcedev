@@ -1,0 +1,3 @@
+<apex:page standardController="Lead" action="{!convertLead}" extensions="LeadConvertViewController">
+    <apex:pageMessages escape="false"></apex:pageMessages>
+</apex:page>

@@ -1,0 +1,99 @@
+<apex:page sidebar="false" controller="AssessmentRedirectionPageController" showHeader="false" docType="html-5.0">
+    <style>
+        .topName {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        vertical-align: text-top;
+        height: 22px;
+        display: block;
+        }
+        
+        .apexp .bPageBlock.apexDefaultPageBlock .pbBody .pbSubheader {
+        border-top: 0;
+        background-color: #be2c2c;
+        color: white;
+        text-align: center;
+        }
+        .inputFieldClass {
+        width: 200px;
+        float: left;
+        }
+        .TextAreaClass{
+        margin: 0px;
+        width: 300px;
+        height: 70px;
+        }
+        
+        .reqCls{
+        border-left-color: 
+        red;border-left-width: thick;
+        }
+        
+        .hidden{
+        display: none;
+        }
+        .tableRow{
+        border-bottom: 2px solid #ccc;
+        white-space: nowrap;
+        }
+        
+        .tableText{
+        width: 15px;
+        border: 1px solid black;
+        border-collapse: collapse;
+        height: 100%;
+        }
+        .tableHeader{
+        background-color: darkgray;
+        }
+        .tablecell{
+        background-color: white;
+        }
+        
+        .HeaderwithoutBorder{
+        color: black !important;
+        border-width: 0 !important;
+        border-style: none !important;
+        background-color: #f1f1f1 !important;
+        }
+        .fontCls{
+        font-weight: bold;
+        font-size: 91%;
+        padding: 2px 2px 2px 5px;
+        margin-top: 15px;
+        overflow: hidden;
+        margin-bottom: 2px;
+        }
+        .table-details th, .table-details td{
+        padding-top:6px;
+        padding-bottom:6px;
+        }
+        .apexp .bPageBlock .detailList {
+        display: flex;
+        justify-content: center;
+        }
+    </style>
+    <apex:pageBlock Id="redirectionpage">
+            <div  align="left" draggable="false">
+                <img src="{!$Resource.eVisaLogo}" width="150px"/>
+            </div>
+            <div align="left" draggable="false">
+                <apex:form >
+                    <apex:commandButton value="Back" action="{!backToSFhome}" style="margin-bottom: 5px;margin-top: 15px;"/>
+                </apex:form>
+            </div>
+        <apex:outputPanel layout="block">
+            <apex:form >
+                <apex:pageBlockSection title="Please Select Assessment Type" collapsible="false" columns="1">
+                        <apex:selectList size="1" value="{!selectedassessment}"> 
+                            <apex:selectOptions value="{!assessmenttype}"/>  
+                        </apex:selectList>
+                        <apex:commandButton value="Create New Assessment" action="{!createAssessment}"/> 
+                </apex:pageBlockSection>
+            </apex:form>
+        </apex:outputPanel>
+    </apex:pageBlock>
+    
+    
+</apex:page>

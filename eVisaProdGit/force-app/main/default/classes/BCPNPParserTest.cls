@@ -1,0 +1,17 @@
+@IsTest
+public class BCPNPParserTest {
+	
+	static testMethod void testParse() {
+		String json = '{\"first_name\":\"Iman\",\"last_name\":\"Test\",\"email\":\"ijam10@gmail.com\",\"email_confirmation\":\"ijam10@gmail.com\",\"how_hear_about_us\":\"CONTACT SITE\",\"preferred_language\":\"French\",\"user_note\":\"asdasd\",\"job_offer\":[{\"job_title_noc\":{\"id\":\"51\",\"title\":\"assistant deputy minister \",\"noc\":\"0012\"},\"years_of_experience\":\"No\",\"type_of_salary\":\"Hourly\",\"salary_amount\":10,\"hours_per_week\":40,\"years_of_related_work_experience\":\"Less than 1 year\",\"a_year_experience_canada\":\"Yes\",\"are_you_in_canada\":\"Yes\",\"company_location_in_bc\":\"Greater Vancouver\",\"employer_full_time_employees\":\"Yes\"}],\"languages\":{\"ENGLISH\":{\"english_test\":\"CELPIP\",\"skills\":{\"listening\":\"Level 12\",\"reading\":\"Level 11\",\"writing\":\"Level 11\",\"speaking\":\"Level 12\"}},\"FRENCH\":{\"french_test\":\"TEF\",\"skills\":{\"listening\":\"298-315\",\"reading\":\"207-232\",\"writing\":\"349-370\",\"speaking\":\"349-370\"}}},\"educations\":[{\"education_level\":\"Doctor Degree (PhD)\",\"name_of_credential\":\"asd\",\"country_of_education\":{\"id\":4,\"title\":\"American Samoa\",\"code\":\"DS\"},\"obtained_credential_assessment\":\"Yes\",\"obtained_trade_certification_in_canada\":\"No\",\"canadian_education_institution_type\":null,\"canadian_education_institution_location\":null}]}';
+		BCPNPParser obj = BCPNPParser.parse(json);
+		System.assert(obj != null);
+	}
+    
+    @isTest
+    static void testParse1()
+    {
+        String json = '{\"first_name\":\"Ar\",\"last_name\":\"Uj\",\"email\":\"aryan.ujlayan@algoworks.com\",\"email_confirmation\":\"aryan.ujlayan@algoworks.com\",\"preferred_language\":\"English\",\"user_note\":null,\"job_offer\":[{\"job_title_noc\":{\"id\":\"4865\",\"title\":\"shelving clerk - library \",\"noc\":\"1451\"},\"currently_working\":\"Yes\",\"experience_over_year\":\"None or Less than 12 months of cumulative, full-time or part-time equivalent\",\"salary_amount\":\"$40 per hour or higher\",\"in_demand_occupation\":\"Yes\",\"earnings_history\":\"$40k or more earnings in a year\",\"years_of_related_work_experience\":\"1 to 2 years\",\"part_of_strategic_priorities\":\"No\",\"company_location_in_on\":\"Greater Toronto Area (GTA)\",\"are_you_in_canada\":\"Yes\",\"cec_noc\":{\"id\":\"2304\",\"title\":\"cold-storage manager \",\"noc\":\"0651\"}}],\"languages\":{\"ENGLISH\":{\"english_test\":\"CELPIP\",\"skills\":{\"listening\":\"Level 11\",\"reading\":\"Level 10\",\"writing\":\"Level 9\",\"speaking\":\"Level 8\"}},\"FRENCH\":{\"french_test\":\"No\",\"skills\":{\"listening\":\"Upper Intermediate (CLB 8)\",\"reading\":\"Advanced\\/Native Proficiency (CLB 9+)\",\"writing\":\"Intermediate II (CLB 7)\",\"speaking\":\"Intermediate I (CLB 6)\"}}},\"educations\":[{\"education_level\":\"Masters\",\"name_of_credential\":\"Cred10\",\"field_of_study\":\"Health care\",\"country_of_education\":{\"id\":38,\"title\":\"Canada\",\"code\":\"CA\"},\"canadian_education_institution_type\":\"Public\",\"canadian_education_institution_location\":\"Greater Toronto Area (GTA)\",\"canadian_education_experience\":\"One Canadian credential\"}]}';
+		OINPParser obj = OINPParser.parse(json);
+        System.assert(obj !=null);
+    }
+}

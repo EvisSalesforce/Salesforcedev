@@ -1,0 +1,839 @@
+<apex:page sidebar="false" controller="BCPNPPanelScreenController" showHeader="false" docType="html-5.0" id="pg1">
+    <style>
+        .topName {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        vertical-align: text-top;
+        height: 22px;
+        display: block;
+        }
+        
+        .apexp .bPageBlock.apexDefaultPageBlock .pbBody .pbSubheader {
+        border-top: 0;
+        background-color: #be2c2c;
+        color: white;
+        }
+        .inputFieldClass {
+        width: 200px;
+        float: left;
+        }
+        .TextAreaClass{
+        margin: 0px;
+        width: 300px;
+        height: 70px;
+        }
+        
+        .reqCls{
+        border-left-color: 
+        red;border-left-width: thick;
+        }
+        
+        .hidden{
+        display: none;
+        }
+        .tableRow{
+        border-bottom: 2px solid #ccc;
+        white-space: nowrap;
+        }
+        
+        .tableText{
+        width: 15px;
+        border: 1px solid black;
+        border-collapse: collapse;
+        height: 100%;
+        }
+        .tableHeader{
+        background-color: darkgray;
+        }
+        .tablecell{
+        background-color: white;
+        }
+        
+        .HeaderwithoutBorder{
+        color: black !important;
+        border-width: 0 !important;
+        border-style: none !important;
+        background-color: #f1f1f1 !important;
+        }
+        .fontCls{
+        font-weight: bold;
+        font-size: 91%;
+        padding: 2px 2px 2px 5px;
+        margin-top: 15px;
+        overflow: hidden;
+        margin-bottom: 2px;
+        }
+        .table-details th, .table-details td{
+        padding-top:6px;
+        padding-bottom:6px;
+        }
+    </style>
+    
+    <script type="text/javascript">          
+    function noenter(e){               
+        if(window.event){                    
+            key = window.event.keyCode;     //IE               
+        } 
+        else{                    
+            key = e.which;     //firefox               
+        }               
+        if(key == 13) {                    
+            //alert('Enter pressed!')
+            //console.log('Enter pressed!')
+            return false;               
+        } else{                    
+            return true;               
+        }          
+    }     
+    </script>       
+    <apex:includeScript value="{!URLFOR($Resource.EVISAJQUERY, 'jquery-3.6.0.js')}"/>
+    <apex:includeScript value="{!URLFOR($Resource.EVISAJQUERY, 'jquery-ui.js')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.EVISAJQUERY, 'jquery-ui.css')}"/>
+    
+    <apex:tabPanel switchType="client" id="tabPanel" value="{!tabOpt}">
+        <div style="width: 0; height: 0; overflow: hidden;">
+            <apex:form id="hideform">
+                <apex:input id="tabOptinput" style="opacity:0;filter:alpha(opacity=0);"/> 
+            </apex:form>
+        </div>
+        
+        <!--Consultation Details Tab-->
+        <apex:tab label="Consultation Details" name="cdetailTab" id="csTab" disabled="{!IF(contains(tabDisableSet, "0"), false, true)}"
+                  ontabenter="onCSTabClick();" ontableave="onConsultationDetailsLeave()">
+            <!--<apex:actionSupport event="ontableave" reRender="none" action="{!onConsultationDetailsLeave}"/>-->
+            <apex:form >
+                <apex:actionFunction action="{!onConsultationDetailsLeave}" name="onConsultationDetailsLeave" reRender="op" />
+                <apex:actionFunction action="{!onCSTabClick}" name="onCSTabClick" reRender="consultationPage,op" />
+                <apex:actionFunction action="{!setFieldValuesCDTab}" name="handleOnChange" reRender="op">
+                    <apex:param name="firstParam" assignTo="{!focusEle}" value=""/>
+                </apex:actionFunction>
+                <apex:actionFunction action="{!setrequiredFieldValuesCDTab}" name="handleOnChangeRequiredCS" reRender="tabPanel,op"/>
+                
+                <apex:pageBlock Id="consultationPage">
+                    <div  align="left" draggable="false">
+                        <img src="{!$Resource.eVisaLogo}" width="150px"/>
+                    </div>
+                    <div align="left" draggable="false">
+                        <apex:commandButton value="Back" action="{!backToSFhome}" style="margin-bottom: 5px;margin-top: 15px;" rendered="{!consTab == true}" />
+                    </div>
+                    <apex:pageMessages escape="false"></apex:pageMessages>
+                    <apex:outputPanel rendered="{!consTab == true}">
+                        <apex:pageBlockSection title="Consultations (with Assessments)" collapsible="false">
+                            <apex:pageBlockTable value="{!cSheets}" var="ch">
+                                <apex:column headerValue="Consultation Sheet">
+                                    <!--<h3 class="HeaderwithoutBorder,fontCls">Consultation Sheet</h3><br/>-->
+
+                                    <apex:commandLink value="{!ch.name}" action="{!onCSheetClick}" reRender="consultationPage,op">
+                                        <apex:param name="ID" value="{!ch.Id}" assignTo="{!selectedCsheetId}" />
+                                    </apex:commandLink>
+                                </apex:column>
+                                <apex:column value="{!ch.Opportunity__r.name}"/>
+                                <apex:column value="{!ch.Consultation_Status__c}"/>
+                                <apex:column value="{!ch.Date__c}"/>
+                                <apex:column breakBefore="true" colspan="4">
+                                    <!--<apex:outputText value="Assessments" rendered="{!ch.Assessments__r.size>0}"></apex:outputText>-->
+                                    <apex:pageBlockTable value="{!ch.Assessments__r}" var="as" rendered="{!ch.Assessments__r.size>0}">
+                                        <apex:column headerValue="Assessment Name">
+                                            <apex:commandLink value="{!as.name}" action="{!onAsmtClickRouting}" reRender="tabPanel,op">
+                                                <apex:param name="asmtId" value="{!as.Id}" assignTo="{!selectedAsmtId}" />
+                                            </apex:commandLink>
+                                        </apex:column>
+                                        <apex:column value="{!as.Type__c}"/>
+                                        <apex:column value="{!as.Consultation_Sheet__r.Account__r.Name}" />
+                                        <apex:column value="{!as.Total__c}" />
+                                        <apex:column value="{!as.Total_EE__c}" />
+                                        <apex:column value="{!as.CreatedDate}" />
+                                    </apex:pageBlockTable>
+                                </apex:column>
+                            </apex:pageBlockTable>
+                        </apex:pageBlockSection>
+                        <!--Assessment without consultation sheet List on Screen-1 -->
+                        <apex:pageBlockSection title="Assessments (without Consultations)" collapsible="false" >
+                            <apex:pageBlockTable value="{!asmts}" var="asm">
+                                <apex:column headerValue="Assessment Name">
+                                    <apex:commandLink value="{!asm.name}" action="{!onAsmtClickRouting}" reRender="tabPanel,op">
+                                        <apex:param name="asmtId" value="{!asm.Id}" assignTo="{!selectedAsmtId}" />
+                                    </apex:commandLink>
+                                </apex:column>
+                                <apex:column value="{!asm.Type__c}"/>
+                                <apex:column value="{!asm.Account__r.Name}"/>
+                                <apex:column value="{!asm.Total__c}"/>
+                                <apex:column value="{!asm.Total_EE__c}"/>
+                                <apex:column value="{!asm.CreatedDate}"/>
+                            </apex:pageBlockTable>
+                        </apex:pageBlockSection>
+                    </apex:outputPanel>
+                    <!-- Start of Screen - 2 of consultation Details tab -->
+                    <apex:outputPanel rendered="{!consTab == false}">
+                        <apex:commandButton value="Home" action="{!backtoConsultationList}" style="margin-top: 15px;" reRender="consultationPage,op"/>
+                        <apex:commandButton value="Back" action="{!backToSFhome}" style="margin-left: 10px;"/>
+                        <apex:commandButton value="Start New Assessment" action="{!startNewAssessment}" style="margin-bottom: 5px;margin-top: 15px;margin-left: 10px;"
+                                            reRender="tabPanel,op"/>
+
+                        <br/><br/>
+                        <h4 style="font-weight: bold;font-size: .9em;padding-left: 1px;margin-top: 8px;">Consultation Sheet</h4>
+                        <h4 class="topName">{!cSheetDetail.Name}</h4>
+                        <apex:pageBlockSection title="Related Records" collapsible="false">
+                            
+                            <apex:inputField value="{!cSheetDetail.Account__c}"  onchange="handleOnChangeRequiredCS()" styleClass="reqCls"/>
+                            <apex:inputField value="{!cSheetDetail.Source__c}" onchange="handleOnChange()" />
+                            <apex:inputField value="{!cSheetDetail.Opportunity__c}" onchange="handleOnChangeRequiredCS()"  styleClass="reqCls"/>
+                            
+                            <apex:inputField value="{!cSheetDetail.Consultation_Status__c}" onchange="handleOnChange()"/>
+                            <apex:inputText label="Date" value="{!csDate}" id="csDate" html-placeholder="dd/mm/yyyy" onchange="handleOnChange()"/>
+                            <!--<apex:inputField value="{!cSheetDetail.Get_account_information__c}" onchange="handleOnChange()"/>
+                            <apex:inputField value="{!cSheetDetail.Update_Account__c}" onchange="handleOnChange()"/>-->
+                            <apex:inputField value="{!cSheetDetail.Assessment_for__c}" onchange="handleOnChange()">
+                            </apex:inputField>
+                            <apex:outputField value="{!cSheetDetail.LastModifiedBy.Name}" label="Last Modified By"/>
+                            <apex:outputField value="{!cSheetDetail.LastModifiedDate}" />
+                            <apex:inputField value="{!cSheetDetail.Seeking_Consultation_on_the_Matter_of__c}" styleClass="TextAreaClass"
+                                             onchange="handleOnChange()"/>
+                            
+                            
+                        </apex:pageBlockSection>
+                        <apex:pageBlockSection title="Overview" collapsible="false" columns="1">
+                            <!--<apex:inputField value="{!cSheetDetail.Time_Projected__c}" onchange="handleOnChange()"/>-->
+                            <apex:inputText label="Time Projected" value="{!timeProjected}" id="tproj" html-placeholder="dd/mm/yyyy" onchange="handleOnChange()"/>
+                            <apex:inputField value="{!cSheetDetail.Province_of_Interest__c}" onchange="handleOnChange()"/>
+                        </apex:pageBlockSection>
+                        
+                        <apex:pageBlockSection title="Personal Information" collapsible="false" columns="2">
+                            <apex:inputField value="{!cSheetDetail.Marital_Status__c}" onchange="handleOnChange()"/>
+                            <apex:inputField value="{!cSheetDetail.How_many_children__c}" onchange="handleOnChange()"/>
+                            <apex:inputField value="{!cSheetDetail.Canadian_or_PR_Spouse__c}" onchange="handleOnChange()"/>
+                            <apex:inputField value="{!cSheetDetail.Child_below_5__c}" onchange="handleOnChange()"/>
+                            <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                            <apex:inputField value="{!cSheetDetail.Child_5_to_13yrs_old__c}" onchange="handleOnChange()"/>
+                            <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                            <apex:inputField value="{!cSheetDetail.Child_13_to_21yrs_old__c}" onchange="handleOnChange()"/>
+                        </apex:pageBlockSection>
+                        
+                        <apex:pageBlockSection title="Client Location" collapsible="false">
+                            <apex:inputField value="{!cSheetDetail.Location__c}" onchange="handleOnChange()"/>
+                            <apex:inputField value="{!cSheetDetail.City_Province__c}" onchange="handleOnChange(this)"/>
+                            <apex:inputField value="{!cSheetDetail.Outside_Country_of_Citizenship__c}" onchange="handleOnChange()"/>
+                            <apex:inputField value="{!cSheetDetail.Country__c}" onchange="handleOnChange()"/>
+                            <apex:inputField value="{!cSheetDetail.Status__c}" onchange="handleOnChange()"/>
+                            <!--<apex:inputField value="{!cSheetDetail.Status_Expiration_Date__c}" onchange="handleOnChange()"/>-->
+                            <apex:inputText label="Status Expiration Date" value="{!statusExpirationDate}" id="statusDate" html-placeholder="dd/mm/yyyy" onchange="handleOnChange()"/>
+                        </apex:pageBlockSection>
+                        
+                        <apex:pageBlockSection title="Assessment Notes" collapsible="false" columns="1">
+                            <apex:inputField value="{!cSheetDetail.Consultant_Notes__c}" styleClass="TextAreaClass"
+                                             onchange="handleOnChange()"/>
+                        </apex:pageBlockSection>
+                        <div align="center" draggable="false" style="margin-top:10px; margin-bottom:10px;">
+                            <apex:commandButton value="Save" action="{!updateConsultationDetails}" reRender="consultationPage,op"
+                                                style="margin-top: 40px;margin-bottom: 10px;"/>
+                            <apex:commandButton value="Print" onclick="window.print()" reRender="consultationPage,op" style="margin:10px;"/>
+                        </div>
+                        
+                        <apex:pageBlockSection title="Assessments" collapsible="true" >
+                            <apex:pageBlockTable value="{!cSheetDetail.Assessments__r}" var="cr">
+                                <apex:column headerValue="Assessment Name">
+                                    <apex:commandLink value="{!cr.name}" action="{!onAsmtClickRouting}" reRender="tabPanel,op">
+                                        <apex:param name="asmtId" value="{!cr.Id}" assignTo="{!selectedAsmtId}" />
+                                    </apex:commandLink>
+                                </apex:column>
+                                <apex:column value="{!cr.Type__c}"/>
+                                <apex:column value="{!cr.Consultation_Sheet__r.Account__r.Name}"/>
+                                <apex:column value="{!cr.Total__c}" />
+                                <apex:column value="{!cr.Total_EE__c}" />
+                                <apex:column value="{!cr.CreatedDate}" />
+                                
+                            </apex:pageBlockTable>
+                        </apex:pageBlockSection>
+                    </apex:outputPanel>
+                    <!-- End of Screen - 2 of consultation Details tab -->
+                </apex:pageBlock>
+            </apex:form>
+        </apex:tab>
+        <!-- End of - Consultation Details Tab-->
+        
+        <!-- Start of - Profile Tab-->
+        <apex:tab label="Profile" name="profile" disabled="{!IF(contains(tabDisableSet, "1"), false, true)}" id="profile" ontableave="onTableaveProfile()"
+                  ontabenter="onProflieClick();">
+            <apex:form id="pform">
+                    <apex:actionFunction action="{!onProflieClick}" name="onProflieClick" reRender="profilepage,op" />
+                    <apex:actionFunction action="{!onProfileLeave}" name="onTableaveProfile" reRender="profilepage,bizpage,asmtpage,asmtOp,consultationPage,op"
+                                         oncomplete=""/>
+                    <apex:actionFunction action="{!handleOnChangeProfile}" name="handleOnChangeProfile" reRender="false" />
+                    <apex:actionFunction action="{!handleOnChangeProfileRequired}" name="handleOnChangeProfileRequired" reRender="tabPanel,op"/>
+                    <apex:actionFunction action="{!handleNOC1}" name="handleNOC1" reRender="noc1,tabPanel,op" />
+                    <apex:actionFunction action="{!hourlywagecalc}" name="hourlywagecalc" reRender="tos,saa,hpw,tabPanel,op"/>
+                
+                <apex:pageBlock id="profilepage">
+                    <div  align="left" draggable="false">
+                            <img src="{!$Resource.eVisaLogo}" width="150px"/>
+                        </div>
+                        <div align="left" draggable="false">
+                            <apex:commandButton value="Home" action="{!backtoConsultationList}" reRender="tabPanel,consultationPage,op"/>
+                            <apex:commandButton value="Back" action="{!backToSFhome}" style="margin-bottom: 5px;margin-top: 15px;margin-left: 10px;"
+                                                />
+                        </div>
+                    <apex:pageMessages escape="false"></apex:pageMessages>
+                    <apex:pageBlockSection title="Personal Information" collapsible="false" columns="2" id="PIBlock">
+                        
+                        <apex:inputField id="fname" value="{!assessment.First_Name_Main_Applicant__c}" styleClass="reqCls" onchange="handleOnChangeProfileRequired()"
+                                             label="First Name" required="false"/>
+                        
+                        <apex:inputField value="{!assessment.Last_Name_Main_Applicant__c}" styleClass="reqCls" onchange="handleOnChangeProfileRequired()"
+                                             label="Last Name" required="false"/>
+                        
+                        <apex:inputField value="{!assessment.E_mail_Main_Applicant__c}" styleClass="reqCls" onchange="handleOnChangeProfileRequired()"
+                                             label="Email" required="false"/>
+                        <apex:inputField value="{!assessment.E_mail_Confirmation__c}" styleClass="reqCls" onchange="handleOnChangeProfileRequired()"
+                                             label="Email Confirmation" required="false"/>
+                        
+                    </apex:pageBlockSection>
+                    <apex:pageBlockSection title="Job Offer Information" collapsible="false" columns="2" id="JOIBlock">
+                        <apex:inputField value="{!assessment.Please_type_a_occupation_1__c}" label="Job title / NOC" onselect="handleNOC1()" onkeypress="return noenter(event)"/>
+                        
+                        <apex:inputField value="{!assessment.Currently_working_on_this_job_1__c}" label="Are you currently working full-time in this position?" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:outputText label="Noc Details" value="{!nocDetails1}" id="noc1"></apex:outputText>
+                        <apex:outputText ></apex:outputText>
+                        
+                        <apex:inputField value="{!assessment.Type_of_Salary__c}" id="tos" onchange="hourlywagecalc()"/>
+                        
+                        <apex:inputField value="{!assessment.Salary_Amount__c}" type="text" id="saa" onchange="hourlywagecalc()"/>
+                        
+                        <apex:inputField value="{!assessment.Hours_per_week__c}" type="number" id="hpw" onchange="hourlywagecalc()"/>
+                        
+                        <apex:outputText rendered="{!(assessment.Type_of_Salary__c == null && (assessment.Hours_per_week__c == 0 ||assessment.Hours_per_week__c == null) && (assessment.Salary_Amount__c == 0.00 || assessment.Salary_Amount__c == null))}"/>
+                        
+                        <apex:outputText label=" " rendered="{!(assessment.Type_of_Salary__c != null || (assessment.Hours_per_week__c != 0 && assessment.Hours_per_week__c != null) || (assessment.Salary_Amount__c != 0.00 && assessment.Salary_Amount__c != null))}" value="{!assessment.hourlywagecalc__c}"/>
+                        
+                        <apex:inputField value="{!assessment.SkilledWorkingExperience__c}" label="Do you have at least 2 yrs of skilled worker experience in the past 10 yrs?" onchange="handleOnChangeProfile()" />
+                        <apex:outputText ></apex:outputText>
+                        
+                        <apex:inputField value="{!assessment.Directly_Related_Work_Experience__c}" label="Years of related work experience in the past 10 years" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:inputField value="{!assessment.At_least_1_year_of_experience_in_Canada__c}" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:inputField value="{!assessment.Company_Location_in_BC__c}">
+                            <apex:actionSupport event="onchange" action="{!companyLocationChange}"  reRender="femployee,temployee,JOIBlock,tabPanel,op"/>
+                        </apex:inputField>
+                        
+                        <apex:inputField value="{!assessment.employer_5_full_time_employees__c}" label="Does your employer have at least 5 full-time employees?" rendered="{!assessment.Company_Location_in_BC__c == 'Greater Vancouver'}" id="femployee" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:inputField value="{!assessment.employer_3_full_time_employees__c}" label="Does your employer have at least 3 full-time employees?" rendered="{!assessment.Company_Location_in_BC__c != 'Greater Vancouver'}" id="temployee" onchange="handleOnChangeProfile()"/>
+                        
+                    </apex:pageBlockSection>
+                    
+                    <apex:pageBlockSection title="Education and Language" collapsible="false" columns="2" id="EducationBlock">
+                        <apex:pageBlockSectionItem >
+                            <h4>Education</h4>
+                        </apex:pageBlockSectionItem><apex:pageBlockSectionItem />
+                        <p><i>Select your highest education level</i></p><apex:pageBlockSectionItem />
+                        
+                        <apex:inputField value="{!assessment.Education_Level__c}" onchange="handleOnChangeProfile()"></apex:inputField>
+                        
+                        <apex:inputField value="{!assessment.Name_of_diploma1__c}" label="Name of Credential 1" onchange="handleOnChangeProfile()"></apex:inputField>
+                        
+                        <apex:inputField value="{!assessment.Country_of_studies__c}" label="Country of Education" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:inputField value="{!assessment.Education_Credential_Assessment__c}" label="Have you obtained any Education Credential Assessment for this education?" onchange="handleOnChangeProfile()"/>
+                        <apex:pageBlockSectionItem />
+                        
+                        <apex:inputField value="{!assessment.Trade_Certification_in_Canada__c}" label="Have you successfuly obtained your Trade Certification in Canada?" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:pageBlockSectionItem > 
+                            <h4>Canadian Education</h4>
+                        </apex:pageBlockSectionItem><apex:pageBlockSectionItem />
+                        
+                        <apex:inputField value="{!assessment.Type_of_educational_institute__c}" label="Institution Type" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:inputField value="{!assessment.Institution_Location__c}" onchange="handleOnChangeProfile()"/>
+                    </apex:pageBlockSection>
+                    
+                    <apex:pageBlockSection title="Language Information" collapsible="false" columns="2" id="langMain">
+                        <apex:inputField value="{!assessment.Do_you_speak_English_or_French__c}">
+                            <apex:actionSupport event="onchange"  action="{!handleLang}" rerender="langMain,testType,enSpeak,enRead,enWrite,enListen,frSpeak,frRead,frWrite,frListen,ftef"/>
+                        </apex:inputField>
+                        <apex:pageBlockSectionItem />
+                        
+                        <apex:selectList size="1" value="{!selectedTestType}" label="Have you already taken a language test" id="testType"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'English' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!selectedTestTypeList}"/>
+                                <apex:actionSupport event="onchange" reRender="enSpeak,enRead,enWrite,enListen" action="{!onEnTestChange}">
+                                    <apex:param name="selectedTest" value="Main" assignTo="{!selectedOptionEnLang}" />
+                                </apex:actionSupport>
+                            </apex:selectList>
+                        
+                        <apex:pageBlockSectionItem rendered="{!(assessment.Do_you_speak_English_or_French__c == 'English')}"></apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem rendered="{!(assessment.Do_you_speak_English_or_French__c == 'Both')}"></apex:pageBlockSectionItem>
+                        
+                            <!-- Starting of Dependent-Picklists -->
+                            <apex:selectList size="1" value="{!enSpeakValue}" label="English Speaking" id="enSpeak" onchange="handleOnChangeProfile()"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'English' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!enSpeakList}"/>  
+                            </apex:selectList>
+                            <apex:selectList size="1" value="{!enReadValue}" label="English Reading" id="enRead" onchange="handleOnChangeProfile()"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'English' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!enReadList}"/>  
+                            </apex:selectList>
+                            <!--<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>-->
+                            <apex:selectList size="1" value="{!enWriteValue}" label="English Writing" id="enWrite" onchange="handleOnChangeProfile()"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'English' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!enWriteList}"/>  
+                            </apex:selectList>
+                            <apex:selectList size="1" value="{!enListenValue}" label="English Listening" id="enListen" onchange="handleOnChangeProfile()"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'English' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!enListenList}"/>  
+                            </apex:selectList>
+                            <!-- End of Dependent-Picklists -->
+                            <!--<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>-->
+                        
+                        <apex:inputField value="{!assessment.Have_you_done_TEF__c}" label="Have you already taken a language test" rendered="{!(assessment.Do_you_speak_English_or_French__c == 'French' || assessment.Do_you_speak_English_or_French__c == 'Both')}" id="ftef">
+                                <apex:actionSupport event="onchange" action="{!handleFrenchTestType}" reRender="frSpeak,frRead,frWrite,frListen"/>
+                            </apex:inputField>
+                            <!-- Starting of French Dependent picklist values -->
+                            <apex:pageBlockSectionItem rendered="{!(assessment.Do_you_speak_English_or_French__c == 'French' || assessment.Do_you_speak_English_or_French__c == 'Both')}"></apex:pageBlockSectionItem>
+                            <apex:selectList size="1" value="{!frSpeakValue}" label="French Speaking" id="frSpeak" onchange="handleOnChangeProfile()"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'French' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!frSpeakList}"/>  
+                            </apex:selectList>
+                            
+                            <apex:selectList size="1" value="{!frReadValue}" label="French Reading" id="frRead" onchange="handleOnChangeProfile()"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'French' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!frReadList}"/>  
+                            </apex:selectList>  
+
+                            <!--<apex:pageBlockSectionItem ></apex:pageBlockSectionItem>-->
+                            <apex:selectList size="1" value="{!frWriteValue}" label="French Writing" id="frWrite" onchange="handleOnChangeProfile()"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'French' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!frWriteList}"/>  
+                            </apex:selectList>
+                            
+                            <apex:selectList size="1" value="{!frListenValue}" label="French Listening" id="frListen" onchange="handleOnChangeProfile()"
+                                             rendered="{!(assessment.Do_you_speak_English_or_French__c == 'French' || assessment.Do_you_speak_English_or_French__c == 'Both')}"> 
+                                <apex:selectOptions value="{!frListenList}"/>  
+                            </apex:selectList>
+
+                            <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                            <!-- End of French Dependent picklist values -->
+                        
+                        
+                        
+                    </apex:pageBlockSection>
+                    
+                    <apex:pageBlockSection title="Others" collapsible="false" columns="1" id="OtherBlock">
+                        <apex:inputField value="{!assessment.How_did_you_hear_about_us__c}" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:inputField value="{!assessment.Any_Specific_question_or_comment__c}" onchange="handleOnChangeProfile()"/>
+                        
+                        <apex:pageBlockSectionItem ><h4>Immigration Newsletters</h4></apex:pageBlockSectionItem>
+                        
+                        <apex:inputField value="{!assessment.newsletter_subscribe__c}" label="YES, please subscribe me to receive immigration news and updates" onchange="handleOnChangeProfile()"/>
+                        
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+                <apex:commandButton value="Save" reRender="profilepage,bizpage,asmtpage,asmtOp,consultationPage" action="{!saveOrUpdateProfile}"/>
+            </apex:form>
+        </apex:tab>
+        
+        <!-- End of - Profile Tab-->
+        
+        <!--Start of - Assessment Tab -->
+        <apex:tab label="Assessment" disabled="{!IF(contains(tabDisableSet, "4"), false, true)}" name="asmtTab" id="asmtTab"
+                  ontabenter="onasmtTabClick();" ontableave="onasmtTabLeave()">
+            
+            <apex:form >
+                <!--<div  align="left" draggable="false">
+                    <img src="{!$Resource.eVisaLogo}" width="150px"/>
+                </div>-->
+                <div align="left" draggable="false">
+                    <apex:commandButton value="Home" action="{!backtoConsultationList}" reRender="tabPanel,consultationPage,op"/>
+                    <apex:commandButton value="Back" action="{!backToSFhome}" style="margin-bottom: 8px;margin-left: 10px;"/>
+                </div>
+            </apex:form>
+            <apex:pageMessages escape="false" id="asmtpage"></apex:pageMessages>
+            <apex:outputPanel style="margin: auto;display: flex;margin-left: 15px;justify-content: flex-start;margin-bottom: 15px;" id="asmtOp">
+                <!--Need to write the code for table-->
+                <table class="tableText table-details" cellpadding="10" border="0" style="margin-right:100px;">
+                    <tr class="tableText tableRow">
+                        <th colspan="2" class="tableHeader" style="text-align: center;"><b>BCPNP Score Table</b></th>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <th class="tableHeader">Selection Factor</th>
+                        <th class="tableHeader" style="text-align: right;"> Maximum Points</th>
+                    </tr>
+                    <tr class="tableText">
+                        <th class="tableHeader">Economic Factors:</th>
+                        <th class="tableHeader" style="text-align: right;">110 Points</th>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Skill Level of the B.C Job Offer</td>
+                        <td class="tablecell" style="text-align: right;">25</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Occupation is a "00" NOC</td>
+                        <td class="tablecell" style="text-align: right;">15</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Currently Working in occupation identified in the BC PNP registration</td>
+                        <td class="tablecell" style="text-align: right;">10</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Wage of the B.C. Job Offer</td>
+                        <td class="tablecell" style="text-align: right;">50</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Regional District of Employment</td>
+                        <td class="tablecell" style="text-align: right;">10</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <th class="tableHeader">Human Capital Factors:</th>
+                        <th class="tableHeader" style="text-align: right;">80 Points</th>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Directly Related Work Experience</td>
+                        <td class="tablecell" style="text-align: right;">15</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">At least 1 year of directly related experience in Canada</td>
+                        <td class="tablecell" style="text-align: right;">10</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Highest Level of Education</td>
+                        <td class="tablecell" style="text-align: right;">17</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Post Secondary completed in B.C</td>
+                        <td class="tablecell" style="text-align: right;">8</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Post Secondary completed in Canada(outside of B.C.)</td>
+                        <td class="tablecell" style="text-align: right;">6</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Educational Credential Assessment from a qualified supplier</td>
+                        <td class="tablecell" style="text-align: right;">4</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Industry Training Authority's challenge certification process</td>
+                        <td class="tablecell" style="text-align: right;">4</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Language</td>
+                        <td class="tablecell" style="text-align: right;">30</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell" style="background-color: limegreen;  font-weight: bold;">Total Points</td>
+                        <td class="tablecell" style="text-align: right;background-color: limegreen;font-weight: bold;">190</td>
+                    </tr>
+                    
+                    <!--Start Of Skilled Worker Table ROWS-->
+                   
+                    <tr> <td colspan="2" height="10" style="border: hidden;border-top: 1px solid #000;"></td> </tr>
+                    <tr> <td colspan="2" height="10" style="border-left: hidden;border-right: hidden;"></td> </tr>
+                        <tr class="tableText">
+                            <th colspan="2" class="tableHeader"><b>Skilled Worker Stream</b></th>
+                        </tr>
+                        <tr class="tableText">
+                            <th style="{!IF(assessment.BCPNPSkilledWS__c == 'NOT QUALIFIED', 'background-color: coral;', 'background-color: limegreen;')}">Result</th>
+                            <th style="{!IF(assessment.BCPNPSkilledWS__c == 'NOT QUALIFIED', 'background-color: coral;text-align: right;', 'background-color: limegreen;text-align: right;')}">{!assessment.BCPNPSkilledWS__c}</th>
+                        </tr>
+                    <!--End Of Skilled Worker Table ROWS-->
+                    
+                    <!--Start Of Student Graduate Table ROWS-->
+                   
+                    <tr> <td colspan="2" height="10" style="border: hidden;border-top: 1px solid #000;"></td> </tr>
+                    <tr> <td colspan="2" height="10" style="border-left: hidden;border-right: hidden;"></td> </tr>
+                        <tr class="tableText">
+                            <th colspan="2" class="tableHeader"><b>Student Graduate Stream</b></th>
+                        </tr>
+                        <tr class="tableText">
+                            <th style="{!IF(assessment.BCPNPSGS__c == 'NOT QUALIFIED', 'background-color: coral;', 'background-color: limegreen;')}">Result</th>
+                            <th style="{!IF(assessment.BCPNPSGS__c == 'NOT QUALIFIED', 'background-color: coral;text-align: right;', 'background-color: limegreen;text-align: right;')}">{!assessment.BCPNPSGS__c}</th>
+                        </tr>
+                    <!--End Of Student Graduate Table ROWS-->
+                    
+                </table>
+                <!-- Main Table -->
+                <table class="tableText table-details" cellpadding="10" border="0">
+                    <tr class="tableText tableRow">
+                        <th colspan="2" class="tableHeader" style="text-align: center;"><b>BCPNP</b></th>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <th class="tableHeader">Selection Factor</th>
+                        <th class="tableHeader" style="text-align: right;">Points</th>
+                    </tr>
+                    <tr class="tableText">
+                        <th class="tableHeader">Economic Factors:</th>
+                        <th class="tableHeader" style="text-align: right;">110 Points</th>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Skill Level of the B.C Job Offer</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPskilllevel__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Occupation is a "00" NOC</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPOOBonus__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Currently working in occupation identified in the BC PNP registration</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPCurrentlyWorking__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Wage of the B.C. Job Offer</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPWage__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Regional District of Employment</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPRDE__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <th class="tablecell" style="background-color: lightyellow;">Economic Factors subtotal</th>
+                        <th class="tablecell" style="text-align: right;background-color: lightyellow;">{!assessment.BCPNPEcoSub__c}</th>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <th class="tableHeader">Human Capital Factors:</th>
+                        <th class="tableHeader" style="text-align: right;">80 Points</th>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Directly Related Work Experience</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPDRWE__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">At least 1 year of directly related experience in Canada</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPAtleast1Yearexp__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Highest Level of Education</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPHLE__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Post Secondary completed in B.C</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPPostBC__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Post Secondary completed in Canada(outside of B.C.)</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPPostCanada__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Educational Credential Assessment from a qualified supplier</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPECA__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Industry Training Authority's challenge certification process</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPICA__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell">Language</td>
+                        <td class="tablecell" style="text-align: right;">{!assessment.BCPNPLanguage__c}</td>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <th class="tablecell" style="background-color: lightyellow;">Human Capital Factors subtotal</th>
+                        <th class="tablecell" style="text-align: right;background-color: lightyellow;">{!assessment.BCPNPHumCap__c}</th>
+                    </tr>
+                    <tr class="tableText tableRow">
+                        <td class="tablecell" style="font-weight:bold;background-color: limegreen;">Total Points</td>
+                        <td class="tablecell" style="text-align: right;font-weight:bold;background-color: limegreen;">{!assessment.BCPNPTotal__c}</td>
+                    </tr>
+                    
+                </table>
+            </apex:outputPanel>
+            <br/>
+            <apex:form >
+                <div align="Center" draggable="false">
+                    <apex:commandButton value="Calculate Assessment Score" action="{!calculateAsmtScore}" id="calcAsmt"
+                                        reRender="asmtOp,asmtpage" style="margin-bottom: 15px;margin-top: 5px;margin-left: 15px;"/>
+                </div>
+            </apex:form>
+            <apex:form >
+                <apex:actionFunction action="{!onasmtTabClick}" name="onasmtTabClick" reRender="asmtpage"/>
+                <apex:actionFunction action="{!handleOnChangeasmtTab}" name="handleOnChangeasmtTab" reRender="op"/>
+                <apex:actionFunction action="{!onasmtTabLeave}" name="onasmtTabLeave" reRender="op"/>
+            </apex:form>
+        </apex:tab>
+    </apex:tabPanel>
+    <apex:outputPanel id="op" >
+        <script type="text/javascript">
+        //var tab = document.getElementById('pg1:profile_lbl');
+        var elements = document.getElementsByClassName('rich-tab-bottom-line')[0];
+        var hideInput =  document.getElementById('pg1:hideform:tabOptinput');
+        elements.addEventListener("mouseenter", function(){hideInput.focus(); console.log("funcalled")});
+        console.log('elements:'+elements);
+        
+                
+        function setFocus(param){
+            param = '{!focusEle}'
+            console.log('param: ',param);
+            var ele = document.getElementById(param);
+            ele.focus();
+        }
+        var j$ = $.noConflict();  
+        j$(function(j$) {
+            j$(document).on("focus","[id$=csDate]",function(){
+                j$( "[id$=csDate]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=tproj]",function(){
+                j$( "[id$=tproj]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            
+            j$(document).on("focus","[id$=statusDate]",function(){
+                j$( "[id$=statusDate]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=mainDOB]",function(){
+                j$( "[id$=mainDOB]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy",
+                    });
+                
+            });
+            j$(document).on("focus","[id$=spDOB]",function(){
+                j$( "[id$=spDOB]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=ch1]",function(){
+                j$( "[id$=ch1]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=ch2]",function(){
+                j$( "[id$=ch2]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=ch3]",function(){
+                j$( "[id$=ch3]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=ch4]",function(){
+                j$( "[id$=ch4]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=ch5]",function(){
+                j$( "[id$=ch5]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=ch6]",function(){
+                j$( "[id$=ch6]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=js1]",function(){
+                j$( "[id$=js1]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=je1]",function(){
+                j$( "[id$=je1]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=js2]",function(){
+                j$( "[id$=js2]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=je2]",function(){
+                j$( "[id$=je2]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=js3]",function(){
+                j$( "[id$=js3]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=je3]",function(){
+                j$( "[id$=je3]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=jsSp1]",function(){
+                j$( "[id$=jsSp1]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=jeSp1]",function(){
+                j$( "[id$=jeSp1]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=jsSp2]",function(){
+                j$( "[id$=jsSp2]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=jeSp2]",function(){
+                j$( "[id$=jeSp2]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=jsSp3]",function(){
+                j$( "[id$=jsSp3]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            j$(document).on("focus","[id$=jeSp3]",function(){
+                j$( "[id$=jeSp3]").datepicker(
+                    { yearRange: "-100:+10",
+                     changeMonth: true,
+                     changeYear: true ,
+                     dateFormat: "dd/mm/yy" });
+            });
+            
+        });  
+        </script>       
+    </apex:outputPanel>
+</apex:page>
